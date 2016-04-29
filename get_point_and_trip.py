@@ -2,13 +2,18 @@ import datetime
 import json
 
 gid = "1285"
-
-with open('gas_car_trip') as fgas_car_trip:    
-    gas_car_trip = json.load(fgas_car_trip)
-gas_car_trip[gid] = {}
 cars = ["221", "1389", "5390", "1890", "313", "2056", "433",
         "311", "460", "312", "1797", "1889", "323", "5753"]
 gas_station = {"lat": 55.8115, "lng": 37.6901}
+# gid = "372"
+# cars = ["5126", "4986"]
+# gas_station = {"lat": 55.6643, "lng": 37.4711}
+
+
+trips = []
+with open('gas_car_trip') as fgas_car_trip:    
+    gas_car_trip = json.load(fgas_car_trip)
+gas_car_trip[gid] = {}
 #trip_car_f = open('point_trip_result/trip_car', 'a')
 for cid in cars:
     gas_car_trip_tmp = []
@@ -81,6 +86,7 @@ for cid in cars:
                 if tmp == gas_station:
                     flag_write = True
         if flag_write:
+            trips.append(data[0])
             gas_car_trip_tmp.append(data[0])
 ################################################
             trip_points_f = open('trips_point/' + data[0], 'w')
@@ -96,3 +102,9 @@ fgas_car_trip = open('gas_car_trip', 'w')
 gas_car_trip = json.dumps(gas_car_trip)
 fgas_car_trip.write(gas_car_trip)
 fgas_car_trip.close()
+
+ftrips = open('trips', 'w')
+ftrips.write(str(len(trips)) + '\n')
+for t in trips:
+    ftrips.write(t + '\n')
+ftrips.close()
