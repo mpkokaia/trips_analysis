@@ -53,6 +53,28 @@ class KCluster(object):
                     for j in xrange(len(avgs)):
                         avgs[j] /= len(bestmatches[i])
                     clusters[i] = avgs
+        # clusters = []
+        # bestmatches = []
+        # already_in = []
+        # for i in range(len(self.data)):
+        #     cl = self.data[i]
+        #     tmp = [round(cl[0], 4), round(cl[1], 4)]
+        #     tmp_best = []
+        #     for j in range(i + 1, len(self.data)):
+        #         cl2 = self.data[j]
+        #         tmp2 = [round(cl2[0], 4), round(cl2[1], 4)]
+        #         if tmp == tmp2:
+        #             if j not in already_in:
+        #                 already_in.append(j)
+        #                 tmp_best.append(j)
+        #                 self.data[j] = self.data[i]
+        #     clusters.append(self.data[i])
+        #     if tmp_best:
+        #         bestmatches.append(tmp_best)
+        #     else:
+        #         bestmatches.append([i])
+        # print clusters
+
         return clusters, bestmatches
 
 
@@ -62,8 +84,9 @@ def read_data():
     arrlon = []
     arrlat = []
     ftrips = open('trips')
+    trip_count = ftrips.readline().strip()
     trip_ids = []
-    for i in xrange(22):
+    for i in xrange(int(trip_count)):
         trip_id = ftrips.readline().strip()
         trip_ids.append(trip_id)
         f = open('trips_point/' + trip_id)
@@ -87,12 +110,17 @@ def read_data():
 
 
 point_info, lon_lat, data, trip_ids = read_data()
+gid = "1285"
+
 k = 700
 centroids, kclust = KCluster(data, k).clustering()
 result = {}
 diff = 0
 f = open('k_means_result.txt', 'w')
 fcentroids = open('centroids.txt', 'w')
+
+fcentroidsall = open('centroids/' + gid + '.txt', 'w')
+
 for i in xrange(k):
     trips = {}
     if not kclust[i]:
@@ -107,11 +135,14 @@ for i in xrange(k):
         d1 = datetime.datetime.strptime(line[1] + line[2][0:5],
                                         "%Y-%m-%d%H:%M")
         trips[line[0]] = d1
+    fcentroidsall.write(str(centroids[i][0]) + ' ' +
+                        str(centroids[i][1]) + '\n')
     fcentroids.write(str(centroids[i][0]) + ' ' + str(centroids[i][1]) + '\n')
     result[str(i - diff)] = {'point': centroids[i],
                              'trip': trips}
 f.close()
 fcentroids.close()
+fcentroidsall.close()
 k -= diff
 matrix = []
 for a in xrange(0, k):
