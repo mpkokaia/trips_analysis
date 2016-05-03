@@ -111,8 +111,10 @@ def read_data():
 
 point_info, lon_lat, data, trip_ids = read_data()
 gid = "1285"
+# gid = "372"
+# gid = "688"
 
-k = 700
+k = 50
 centroids, kclust = KCluster(data, k).clustering()
 result = {}
 diff = 0
@@ -145,8 +147,10 @@ fcentroids.close()
 fcentroidsall.close()
 k -= diff
 matrix = []
+newmatrix = []
 for a in xrange(0, k):
     matrix.append([0 for i in range(0, k)])
+    newmatrix.append([0 for i in range(0, k)])
 
 for tid in trip_ids:
     tmp = {}
@@ -157,39 +161,98 @@ for tid in trip_ids:
     for i in xrange(len(ittmp) - 1):
         matrix[int(ittmp[i][1])][int(ittmp[i + 1][1])] += 1
 
+# for i in xrange(k):
+#     if sum(matrix[i]) == 0:
+#         check = True
+#         for j in xrange(k):
+#            if matrix[j][i] != 0:
+#             check = False
+#         if check:
+#             print 'TRUE!'
 max_el = 0
+max_el2 = 0
 ind = [0, 0]
+# count = 0
+# groups = []
 for i in xrange(0, k):
     for j in xrange(0, k):
         el = matrix[i][j]
         if el > max_el:
             max_el = el
+            max_el2 = el
             ind = [i, j]
-gid = "1285"
-
-fmatr = open('matrixs/' + gid + '.txt', 'w')
-for i in xrange(0, k):
-    fmatr.write(' '.join([str(j) for j in matrix[i]]) + '\n')
-fmatr.close()
-
-print max_el
 print k
+
+for j in xrange(k):
+    tmpcount = 0.0
+    for i in xrange(k):
+        tmpcount += float(matrix[i][j])
+    if tmpcount == 0.0:
+        tmpcount = 1.0
+    for i in xrange(k):
+        newmatrix[i][j] = matrix[i][j]/tmpcount
+
+newmatrix[ind[0]][ind[1]] = 2.0
+
 matrix[ind[0]][ind[1]] = 0
+# matrix[ind[0]] = [0 for i in xrange(k)]
+# for i in xrange(k):
+#     matrix[i][ind[1]] = 0
+
+
 path = [ind[0], ind[1]]
 i = ind[1]
-
 while(max_el):
     max_el = 0
     nj = 0
-    for j in xrange(0, k):
-        el = matrix[i][j]
-        if el > max_el:
-            max_el = el
-            nj = j
-    matrix[i][nj] = 0
-    path.append(nj)
-    i = nj
+    count = float(sum(matrix[i]))
+    if count != 0:
+        # count = 1.0
+        for j in xrange(0, k):
+            if j not in path:
+                el = matrix[i][j]
+                # newmatrix[i][j] = el/count
+                if el > max_el:
+                    max_el = el
+                    nj = j
+        if max_el:
+            matrix[i][nj] = 0
+            path.append(nj)
+            i = nj
+#################################
+# v druguyu storonu
+max_el = max_el2
+npath = []
+j = ind[0]
+while(max_el):
+    max_el = 0
+    ni = 0
+    count = 0
+    for i in xrange(0, k): 
+        count += float(matrix[i][j])
+    print count
+    if count != 0:
+        # count = 1.0
+        for i in xrange(0, k):
+            if i not in path:
+                el = matrix[i][j]
+                # newmatrix[i][j] = el / count
+                if el > max_el:
+                    max_el = el
+                    ni = i
+        if max_el:
+            matrix[ni][j] = 0
+            npath.append(ni)
+            j = ni
+path = npath[::-1] + path
+#######################
 print path
+
+fmatr = open('matrixs/' + gid + '.txt', 'w')
+for i in xrange(0, k):
+    fmatr.write(' '.join([str(j) for j in newmatrix[i]]) + '\n')
+fmatr.close()
+
 
 fgraph = open('graphs/' + gid + '.txt', 'w')
 for p in path:
